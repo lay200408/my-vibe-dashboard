@@ -1,0 +1,15 @@
+{
+    "short_name": "VibeFocus",
+    "name": "Vibe Focus Dashboard",
+    "icons": [
+      {
+        "src": "/logo.svg",
+        "type": "image/svg+xml",
+        "sizes": "any"
+      }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff"
+  }

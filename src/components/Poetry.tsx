@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Quote } from 'lucide-react';
 
 interface PoetryProps {
   themeHue: number;
@@ -8,110 +8,115 @@ interface PoetryProps {
 interface Poem {
   content: string;
   author: string;
-  title: string;
+  origin: string;
 }
 
 function Poetry({ themeHue }: PoetryProps) {
-  const poems: Poem[] = [
-    {
-      content: '行到水穷处，坐看云起时。',
-      author: '王维',
-      title: '终南别业',
-    },
-    {
-      content: '采菊东篱下，悠然见南山。',
-      author: '陶渊明',
-      title: '饮酒',
-    },
-    {
-      content: '空山新雨后，天气晚来秋。',
-      author: '王维',
-      title: '山居秋暝',
-    },
-    {
-      content: '人闲桂花落，夜静春山空。',
-      author: '王维',
-      title: '鸟鸣涧',
-    },
-    {
-      content: '流水落花春去也，天上人间。',
-      author: '李煜',
-      title: '浪淘沙',
-    },
-    {
-      content: '世事一场大梦，人生几度秋凉。',
-      author: '苏轼',
-      title: '西江月',
-    },
-    {
-      content: '云无心以出岫，鸟倦飞而知还。',
-      author: '陶渊明',
-      title: '归去来兮辞',
-    },
-    {
-      content: '竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。',
-      author: '苏轼',
-      title: '定风波',
-    },
-  ];
+  const [currentPoem, setCurrentPoem] = useState<Poem | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [currentPoem, setCurrentPoem] = useState<Poem>(poems[0]);
+  const fetchPoem = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('https://v1.jinrishici.com/all.json');
+      const data = await response.json();
 
-  const getRandomPoem = () => {
-    const randomIndex = Math.floor(Math.random() * poems.length);
-    setCurrentPoem(poems[randomIndex]);
+      setCurrentPoem({
+        content: data.content,
+        author: data.author,
+        origin: data.origin,
+      });
+    } catch (error) {
+      console.error('获取诗词失败：', error);
+    } finally {
+      // 增加一个小小的延迟，让过渡动画更丝滑
+      setTimeout(() => setLoading(false), 400);
+    }
   };
 
   useEffect(() => {
-    getRandomPoem();
+    fetchPoem();
   }, []);
 
+  const primaryColor = `hsl(${themeHue}, 60%, 35%)`;
+  const glassBg = `hsla(${themeHue}, 70%, 98%, 0.4)`;
+
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] px-8">
+    <div className="flex flex-col items-center justify-center h-full min-h-[500px] px-8 relative overflow-hidden">
+      {/* 背景装饰性文字 */}
+      <div className="absolute top-0 right-10 text-[20rem] font-serif opacity-5 select-none pointer-events-none" style={{ color: primaryColor }}>
+        詩
+      </div>
+
       <div
-        className="backdrop-blur-lg rounded-3xl p-12 shadow-lg border max-w-2xl w-full"
+        className={`backdrop-blur-xl rounded-3xl p-16 shadow-2xl border transition-all duration-1000 ${loading ? 'opacity-0 scale-95 blur-md' : 'opacity-100 scale-100 blur-0'}`}
         style={{
-          backgroundColor: `hsla(${themeHue}, 70%, 98%, 0.4)`,
+          backgroundColor: glassBg,
           borderColor: `hsla(${themeHue}, 60%, 100%, 0.6)`,
+          boxShadow: `0 30px 60px -12px hsla(${themeHue}, 20%, 30%, 0.1)`,
         }}
       >
-        <div
-          className="text-4xl leading-relaxed mb-8 text-center font-serif"
-          style={{ color: `hsl(${themeHue}, 60%, 35%)` }}
-        >
-          {currentPoem.content}
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="text-right">
-            <div
-              className="text-lg mb-1"
-              style={{ color: `hsl(${themeHue}, 50%, 45%)` }}
-            >
-              {currentPoem.title}
-            </div>
-            <div
-              className="text-base"
-              style={{ color: `hsl(${themeHue}, 40%, 55%)` }}
-            >
-              — {currentPoem.author}
-            </div>
-          </div>
-
-          <button
-            onClick={getRandomPoem}
-            className="ml-8 p-3 rounded-xl transition-all duration-300 hover:scale-110"
-            style={{
-              backgroundColor: `hsla(${themeHue}, 70%, 90%, 0.6)`,
-              color: `hsl(${themeHue}, 60%, 40%)`,
+        {currentPoem && (
+          <div 
+            className="flex flex-row-reverse gap-10 justify-center items-start min-h-[300px]"
+            style={{ 
+              writingMode: 'vertical-rl', 
+              textOrientation: 'upright'
             }}
           >
-            <RefreshCw size={20} />
-          </button>
-        </div>
+            {/* 1. 标题 (书名号风格) */}
+            <h2 
+              className="font-serif text-2xl font-bold tracking-[0.3em] opacity-80"
+              style={{ color: primaryColor }}
+            >
+              《{currentPoem.origin}》
+            </h2>
+
+            {/* 2. 诗词主体 (加大字号和间距) */}
+            <p 
+              className="font-serif text-4xl leading-[1.8] tracking-[0.2em] text-gray-800 h-full flex items-center"
+              style={{ textUnderlineOffset: '12px' }}
+            >
+              {currentPoem.content}
+            </p>
+
+            {/* 3. 落款与红色印章 */}
+            <div className="flex flex-col items-center gap-6 self-end pt-12">
+               {/* 红色印章样式 */}
+              <div 
+                className="w-10 h-10 rounded-sm border-2 border-red-700 bg-red-50 text-red-800 flex items-center justify-center text-sm font-serif font-bold opacity-80 shadow-sm"
+                style={{ writingMode: 'horizontal-tb' }}
+              >
+                {currentPoem.author.charAt(0)}
+              </div>
+              <span 
+                className="font-serif text-base tracking-[0.5em] opacity-60"
+                style={{ color: primaryColor }}
+              >
+                {currentPoem.author}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 控制按钮 */}
+      <div className="mt-12 flex items-center gap-4">
+        <button
+          onClick={fetchPoem}
+          disabled={loading}
+          className="group flex items-center gap-2 px-8 py-3 rounded-full bg-white/40 hover:bg-white/80 transition-all shadow-sm hover:shadow-md text-gray-600 hover:text-gray-900"
+        >
+          <RefreshCw 
+            size={18} 
+            className={`transition-transform duration-1000 ${loading ? 'animate-spin' : 'group-hover:rotate-180'}`} 
+            style={{ color: primaryColor }}
+          />
+          <span className="text-xs font-bold tracking-widest uppercase">换一首</span>
+        </button>
       </div>
     </div>
   );
 }
 
-export default Poetry;
+export default Poetry;  
